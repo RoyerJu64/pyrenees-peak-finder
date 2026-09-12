@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Sommets",
+    "slug": "pyrenees-peak-finder",
+    "scheme": "pyrenees-peak-finder",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "fr.royerju64.pyreneespeakfinder",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Les noms des sommets sont superposes a l'image de la camera.",
+        "NSLocationWhenInUseUsageDescription": "Votre position sert a calculer quels sommets sont visibles depuis l'endroit ou vous vous trouvez. Elle ne quitte pas l'appareil.",
+        "NSMotionUsageDescription": "L'orientation du telephone indique dans quelle direction pointe la camera."
+      }
+    },
+    "android": {
+      "package": "fr.royerju64.pyreneespeakfinder",
+      "adaptiveIcon": {
+        "backgroundColor": "#0C0E12",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.HIGH_SAMPLING_RATE_SENSORS"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "expo-sqlite",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Les noms des sommets sont superposes a l'image de la camera."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Votre position sert a calculer quels sommets sont visibles depuis l'endroit ou vous vous trouvez. Elle ne quitte pas l'appareil."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

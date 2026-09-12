@@ -22,6 +22,23 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
+  mobile:
+    name: Application (bundle Metro)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Le bundle est la seule verification automatisable de l'application :
+      # il eprouve la resolution des paquets du monorepo par Metro et
+      # l'embarquement de peaks.sqlite. Le reste demande un appareil.
+      - run: pnpm --filter @ppf/mobile run sync-dataset
+      - run: pnpm --filter @ppf/mobile exec expo export --platform android --output-dir "$RUNNER_TEMP/export"
+
   dataset:
     name: Dataset (SQLite)
     runs-on: ubuntu-latest

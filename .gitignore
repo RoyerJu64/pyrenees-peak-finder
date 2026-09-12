@@ -18,3 +18,6 @@ data/raw/*
 data/dem/
 
 .DS_Store
+
+# Artefact de build : regenere depuis data/processed par sync-dataset.mjs
+apps/mobile/assets/peaks.sqlite

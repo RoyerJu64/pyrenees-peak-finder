@@ -73,14 +73,20 @@ export function cropFieldOfView(
 }
 
 /**
- * Valeur de repli, a n'utiliser que tant que l'EXIF n'a pas repondu.
+ * Focale equivalente de repli, en millimetres : l'objectif principal de la
+ * grande majorite des telephones recents.
  *
- * Correspond a une focale equivalente de 26 mm en 4:3, soit l'objectif
- * principal de la grande majorite des telephones recents. Un FOV faux etale ou
- * comprime tout le panorama sans qu'aucun test ne puisse le detecter : c'est un
- * repli, pas un defaut acceptable.
+ * A n'utiliser que tant que l'EXIF n'a pas repondu. Un FOV faux etale ou
+ * comprime tout le panorama sans qu'aucun test ne puisse le detecter : c'est
+ * un repli, pas un defaut acceptable.
  */
-export const FALLBACK_FIELD_OF_VIEW: CameraFieldOfView = fieldOfViewFromFocalLength35mm(26, 4 / 3);
+export const FALLBACK_FOCAL_LENGTH_35MM = 26;
+
+/** Champ de repli en 4:3 paysage. Preferer `cameraFieldOfView`, qui oriente. */
+export const FALLBACK_FIELD_OF_VIEW: CameraFieldOfView = fieldOfViewFromFocalLength35mm(
+  FALLBACK_FOCAL_LENGTH_35MM,
+  4 / 3,
+);
 
 
 /**

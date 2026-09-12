@@ -2,6 +2,7 @@ export * from './angles';
 export * from './bbox';
 export * from './bearing';
 export * from './constants';
+export * from './deviceOrientation';
 export * from './distance';
 export * from './elevation';
 export * from './fov';

@@ -15,7 +15,7 @@ calcule ou tomber les etiquettes. Voir [docs/architecture.md](docs/architecture.
 |---|---|
 | Phase 0 — scaffold monorepo | fait |
 | Phase 1 — dataset Ossau + Aspe | fait, 1263 sommets, 240 Kio |
-| Phase 2 — MVP camera | geometrie faite et testee, app a ecrire |
+| Phase 2 — MVP camera | app ecrite, jamais lancee sur un telephone |
 | Phase 3 — occlusion MNT | partiel : occlusion entre sommets faite, MNT a venir |
 | Phases 3 a 6 | a venir |
 
@@ -26,7 +26,7 @@ Detail dans [docs/roadmap.md](docs/roadmap.md).
 ```bash
 corepack enable            # pnpm 9
 pnpm install
-pnpm test                  # 112 tests unitaires de geometrie
+pnpm test                  # 125 tests unitaires de geometrie
 pnpm typecheck
 ```
 
@@ -43,13 +43,22 @@ python3 data/scripts/validate_dataset.py     # code de sortie 1 si echec
 La base versionnee est deja a jour : ces commandes ne servent qu'a la
 regenerer ou a elargir l'emprise.
 
+L'application :
+
+```bash
+pnpm --filter @ppf/mobile start    # recopie peaks.sqlite puis lance Expo
+```
+
+Elle demande la camera, la position et les capteurs de mouvement : Expo Go
+suffit pour l'essayer, mais il faut un telephone, pas un simulateur.
+
 ## Organisation
 
 ```
 packages/shared-types     types et unites, partages par tout le monorepo
 packages/peak-geometry    distance, gisement, elevation, visibilite, FOV,
                           pertinence, projection, etiquettes
-apps/mobile               application Expo (a venir)
+apps/mobile               application Expo : camera, capteurs, overlay
 data/scripts              pipeline Python
 docs                      architecture, sources de donnees, roadmap
 ```

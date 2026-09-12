@@ -15,9 +15,9 @@ Reste ouvert : 205 sommets au-dessus de 2500 m sans description. Combler ce
 manque demande une redaction manuelle ou une autre source, pas un reglage de
 script.
 
-## Phase 2 — MVP camera + GPS + boussole + overlay — en cours
+## Phase 2 — MVP camera + GPS + boussole + overlay — ecrit, non eprouve
 
-Fait : la geometrie complete, testee (112 tests unitaires).
+Fait : la geometrie complete, testee (125 tests unitaires).
 
 - `boundingBoxAround` — prefiltre spatial de la requete SQL
 - `computeSighting` — distance, gisement, elevation corrigee
@@ -25,21 +25,33 @@ Fait : la geometrie complete, testee (112 tests unitaires).
 - `compareByRelevance` — visibilite, puis description, puis taille apparente
 - `cameraFieldOfView` — FOV rendu, deduit de l'EXIF, rognage et orientation compris
 - `projectSighting` — projection stenope, roulis compris
+- `orientationFromDeviceRotation` — attitude du telephone vers axe optique
 - `layoutLabels` — anti-collision des etiquettes
 
-Reste a faire, cote `apps/mobile` :
+Ecrit, cote `apps/mobile` (Expo SDK 57, expo-router) :
 
-- [ ] scaffold Expo (expo-router, TypeScript strict)
-- [ ] chargement de `peaks.sqlite` depuis les assets (expo-sqlite, base en
-      lecture seule copiee au premier lancement)
-- [ ] requete spatiale locale alimentee par `boundingBoxAround`
-- [ ] `expo-location` — position et altitude, gestion des permissions
-- [ ] `expo-sensors` — fusion magnetometre/accelerometre en cap et inclinaison,
-      lissage du bruit sans introduire de latence visible
-- [ ] FOV reel de la camera active : `expo-camera` ne l'expose pas directement,
-      il faudra une table par appareil ou une calibration
-- [ ] overlay de rendu, etiquettes minimalistes
-- [ ] fiche sommet : nom, altitude, distance, description
+- [x] scaffold Expo en monorepo pnpm — bundle Metro verifie en CI
+- [x] `peaks.sqlite` embarque, recopie depuis `data/processed` au demarrage
+- [x] requete spatiale locale alimentee par `boundingBoxAround`
+- [x] `expo-location` — position, altitude, permissions
+- [x] `expo-sensors` — attitude vers cap/inclinaison/roulis, lissage exponentiel
+- [x] FOV mesure par l'EXIF d'une prise de vue silencieuse, conserve d'un
+      lancement a l'autre
+- [x] overlay : etiquettes, filets de rappel, anti-collision
+- [x] fiche sommet et ruban de cap avec recalage manuel
+
+**Rien de tout cela n'a tourne sur un telephone.** Le bundle passe, les types
+passent, la geometrie est testee — mais l'accord entre les conventions des
+capteurs et celles du calcul ne se verifie qu'en visant un sommet connu. Deux
+points a controler en premier sur le terrain :
+
+1. **L'unite de `DeviceMotion.rotation`.** expo-sensors ne la documente pas. Le
+   code suppose des radians. En degres, l'overlay serait absurde d'emblee — donc
+   visible immediatement. Un seul endroit a corriger, `deviceOrientation.ts`.
+2. **Le referentiel du cap.** Sur iOS l'attitude peut partir d'un nord
+   arbitraire plutot que du nord geographique. Le ruban de cap permet de
+   recaler a la main et conserve la correction ; si le decalage se revele
+   constant par appareil, il faudra le deduire de `Location.watchHeadingAsync`.
 
 Les deux points ouverts ont ete tranches.
 
