@@ -22,6 +22,20 @@ export interface LabelLayoutOptions {
    * suivantes remontent. Par defaut, le sommet le plus proche est prioritaire.
    */
   readonly priority?: (a: ProjectedPeak, b: ProjectedPeak) => number;
+  /**
+   * Remontee maximale d'une etiquette au-dessus de son sommet, en pixels.
+   * Au-dela, l'etiquette est abandonnee plutot que poussee plus haut.
+   *
+   * Sans cette borne, une ligne d'horizon lointaine — ou tous les sommets se
+   * pressent dans une bande de quelques degres — fait empiler les etiquettes
+   * jusqu'en haut du cadre. Le filet de rappel ne sauve rien a cette distance :
+   * un nom pose 300 px au-dessus de sa montagne se lit comme du bruit, pose
+   * sur du ciel.
+   *
+   * Par defaut aucune borne, pour ne pas changer le comportement sans qu'on
+   * l'ait voulu ; l'application, elle, en fixe une.
+   */
+  readonly maxRise?: number;
 }
 
 const byDistance = (a: ProjectedPeak, b: ProjectedPeak): number => a.distance - b.distance;
@@ -44,6 +58,7 @@ export function layoutLabels(
   const anchorOffset = options.anchorOffset ?? 12;
   const step = options.labelHeight + gap;
   const priority = options.priority ?? byDistance;
+  const maxRise = options.maxRise ?? Number.POSITIVE_INFINITY;
   const widthOf =
     typeof options.labelWidth === 'function' ? options.labelWidth : () => options.labelWidth as number;
 
@@ -53,12 +68,15 @@ export function layoutLabels(
     const width = widthOf(peak);
     const x = Math.min(Math.max(peak.x - width / 2, 0), Math.max(viewport.width - width, 0));
 
-    let y = peak.y - anchorOffset - options.labelHeight;
-    while (y >= 0 && overlapsAny(placed, x, y, width, options.labelHeight, gap)) {
+    const naturalY = peak.y - anchorOffset - options.labelHeight;
+    const lowestY = naturalY - maxRise;
+
+    let y = naturalY;
+    while (y >= 0 && y >= lowestY && overlapsAny(placed, x, y, width, options.labelHeight, gap)) {
       y -= step;
     }
 
-    if (y >= 0) {
+    if (y >= 0 && y >= lowestY) {
       placed.push({ peak, x, y, width, height: options.labelHeight });
     }
   }

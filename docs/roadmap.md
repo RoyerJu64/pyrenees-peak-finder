@@ -15,7 +15,7 @@ Reste ouvert : 205 sommets au-dessus de 2500 m sans description. Combler ce
 manque demande une redaction manuelle ou une autre source, pas un reglage de
 script.
 
-## Phase 2 — MVP camera + GPS + boussole + overlay — ecrit, non eprouve
+## Phase 2 — MVP camera + GPS + boussole + overlay — eprouve sur le terrain
 
 Fait : la geometrie complete, testee (125 tests unitaires).
 
@@ -40,18 +40,24 @@ Ecrit, cote `apps/mobile` (Expo SDK 57, expo-router) :
 - [x] overlay : etiquettes, filets de rappel, anti-collision
 - [x] fiche sommet et ruban de cap avec recalage manuel
 
-**Rien de tout cela n'a tourne sur un telephone.** Le bundle passe, les types
-passent, la geometrie est testee — mais l'accord entre les conventions des
-capteurs et celles du calcul ne se verifie qu'en visant un sommet connu. Deux
-points a controler en premier sur le terrain :
+**Test de terrain depuis Pau, septembre 2026 : la chaine de calcul est juste.**
+Position, cap, inclinaison, projection — les sommets tombent au bon endroit.
+Les deux incertitudes ouvertes sont levees : `DeviceMotion.rotation` est bien
+en radians, et le referentiel de cap est exploitable.
 
-1. **L'unite de `DeviceMotion.rotation`.** expo-sensors ne la documente pas. Le
-   code suppose des radians. En degres, l'overlay serait absurde d'emblee — donc
-   visible immediatement. Un seul endroit a corriger, `deviceOrientation.ts`.
-2. **Le referentiel du cap.** Sur iOS l'attitude peut partir d'un nord
-   arbitraire plutot que du nord geographique. Le ruban de cap permet de
-   recaler a la main et conserve la correction ; si le decalage se revele
-   constant par appareil, il faudra le deduire de `Location.watchHeadingAsync`.
+Ce que le test a revele, en revanche :
+
+- **Les etiquettes partaient dans le ciel.** Depuis la plaine, la chaine tient
+  dans une bande de 31 px et l'anti-collision les empilait jusqu'a 334 px
+  au-dessus de leur sommet. Corrige par `maxRise`.
+- **Aucun critere de distinction visuelle.** 131 des 137 sommets projetes
+  etaient des bosses anonymes indiscernables a 40 km. Corrige par
+  `selectSkylinePeaks`.
+- **Le rayon de 45 km ecartait le Pic du Midi d'Ossau depuis Pau** (50.4 km),
+  soit precisement le sommet qu'on y cherche. Porte a 80 km.
+
+Depuis Pau, cap 180 : 6 etiquettes au lieu de 12 empilees, Ossau, Ger, Gabizos
+et Moun Ne compris. Depuis Laruns : 9.
 
 Les deux points ouverts ont ete tranches.
 
@@ -75,6 +81,11 @@ occupent quatre etiquettes cote a cote. Un regroupement par massif, ou
 l'occlusion MNT, reglera la question.
 
 ## Phase 3 — Occlusion via MNT
+
+Le test de terrain a precise ce qu'il en reste a faire. Depuis Pau, l'occlusion
+entre sommets n'ecarte que 126 candidats sur 413 : ce qui masque l'horizon
+depuis la plaine, c'est le piemont, et le piemont n'a pas de sommet reference.
+C'est exactement le trou que le MNT comble.
 
 - [ ] `build_dem_cache.py` — tuiles Copernicus GLO-30 sur l'emprise
 - [ ] format embarquable : le MNT brut de l'emprise pese bien plus que la base

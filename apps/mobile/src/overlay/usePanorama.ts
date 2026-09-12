@@ -14,13 +14,40 @@ import {
   markPeakOcclusion,
   projectSightings,
   rankByRelevance,
+  selectSkylinePeaks,
   type PlacedLabel,
 } from '@ppf/peak-geometry';
 import { loadPeaksAround } from '../peaks/database';
 import { LABEL_HEIGHT, estimateLabelWidth } from '../ui/theme';
 
-/** Portee de l'overlay, en metres. Au-dela, la brume l'emporte sur la geometrie. */
-export const HORIZON_RADIUS_M = 45_000;
+/**
+ * Portee de l'overlay, en metres.
+ *
+ * La geometrie porte bien plus loin : depuis 200 m d'altitude, un sommet a
+ * 2884 m ne passe sous l'horizon qu'au-dela de 190 km. C'est la brume qui
+ * tranche, pas la courbure. 80 km couvre toute l'emprise du jeu de donnees
+ * depuis le piemont bearnais.
+ *
+ * Le rayon precedent, 45 km, ecartait le Pic du Midi d'Ossau pour qui regarde
+ * depuis Pau : il est a 50.4 km, et c'est precisement le sommet qu'on vient y
+ * chercher.
+ */
+export const HORIZON_RADIUS_M = 80_000;
+
+/**
+ * Separation angulaire, en degres, en deca de laquelle deux sommets ne forment
+ * qu'une silhouette. Voir `selectSkylinePeaks`.
+ */
+const MIN_ANGULAR_SEPARATION_DEG = 1.5;
+
+/**
+ * Remontee maximale d'une etiquette au-dessus de son sommet, en pixels.
+ *
+ * Depuis la plaine, la chaine entiere tient dans une bande de trente pixels :
+ * sans cette borne, l'anti-collision empile les etiquettes jusqu'en haut du
+ * cadre, et l'utilisateur lit des noms poses sur du ciel.
+ */
+const MAX_LABEL_RISE_PX = 140;
 
 /** Ecarte le sommet sur lequel l'utilisateur se tient : son gisement n'a pas de sens. */
 const MIN_DISTANCE_M = 150;
@@ -46,11 +73,12 @@ export interface Panorama {
 /**
  * Assemble la chaine geometrique complete, en deux etages de cout tres inegal.
  *
- * Requete spatiale, visees et occlusion ne dependent que de la position : ils
- * sont recalcules quand l'utilisateur se deplace de plus d'une dizaine de
- * metres. Projection et mise en page dependent de l'orientation : ils tournent
- * a chaque image. Melanger les deux ferait ressortir la requete SQLite a chaque
- * frisson de la main.
+ * Requete spatiale, visees, occlusion et regroupement ne dependent que de la
+ * position : ils sont recalcules quand l'utilisateur se deplace de plus d'une
+ * dizaine de metres. Mesure sur 1263 sommets, environ 17 ms, l'occlusion en
+ * O(n^2) en representant les deux tiers. Projection et mise en page dependent
+ * de l'orientation et tournent a chaque image : 0.17 ms. Melanger les deux
+ * ferait ressortir la requete SQLite a chaque frisson de la main.
  */
 export function usePanorama(
   position: ObserverPosition | null,
@@ -93,7 +121,14 @@ export function usePanorama(
         }),
       );
       setOccludedCount(visible.filter((s) => s.visibility === 'occluded').length);
-      setSightings(rankByRelevance(visible));
+
+      // Regroupement avant classement : ce qui se confond a l'oeil ne doit pas
+      // occuper deux etiquettes. C'est ici que 1263 sommets deviennent la
+      // centaine de silhouettes reellement distinctes.
+      const distinct = selectSkylinePeaks(visible, {
+        minSeparation: MIN_ANGULAR_SEPARATION_DEG,
+      });
+      setSightings(rankByRelevance(distinct));
       setIsLoading(false);
     })();
 
@@ -117,6 +152,7 @@ export function usePanorama(
       gap: 6,
       anchorOffset: 14,
       priority: compareByRelevance,
+      maxRise: MAX_LABEL_RISE_PX,
     });
   }, [sightings, orientation, fieldOfView, viewport]);
 

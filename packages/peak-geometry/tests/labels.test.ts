@@ -104,3 +104,37 @@ describe('layoutLabels', () => {
     expect(layoutLabels([], VIEWPORT, OPTIONS)).toEqual([]);
   });
 });
+
+describe('layoutLabels, remontee bornee', () => {
+  it('abandonne une etiquette qui devrait remonter au-dela de la borne', () => {
+    // Une ligne d'horizon lointaine tasse tous les sommets dans quelques
+    // pixels : sans borne, les etiquettes s'empilent jusqu'en haut du cadre.
+    const crowded = Array.from({ length: 10 }, (_, i) =>
+      projected(`P${i}`, 200, 400 + i, i * 1000 + 1000),
+    );
+    const unbounded = layoutLabels(crowded, VIEWPORT, OPTIONS);
+    const bounded = layoutLabels(crowded, VIEWPORT, { ...OPTIONS, maxRise: 60 });
+
+    expect(bounded.length).toBeLessThan(unbounded.length);
+    for (const label of bounded) {
+      expect(label.peak.y - (label.y + label.height)).toBeLessThanOrEqual(60);
+    }
+  });
+
+  it('ne borne rien par defaut', () => {
+    const crowded = Array.from({ length: 6 }, (_, i) => projected(`P${i}`, 200, 400, i * 100 + 100));
+    const labels = layoutLabels(crowded, VIEWPORT, OPTIONS);
+    expect(labels).toHaveLength(6);
+    expect(Math.max(...labels.map((l) => l.peak.y - (l.y + l.height)))).toBeGreaterThan(100);
+  });
+
+  it('ne garde que la position naturelle quand la borne est nulle', () => {
+    const labels = layoutLabels(
+      [projected('A', 200, 400, 1000), projected('B', 205, 402, 2000)],
+      VIEWPORT,
+      { ...OPTIONS, maxRise: 0 },
+    );
+    expect(labels).toHaveLength(1);
+    expect(labels[0]!.peak.peak.name).toBe('A');
+  });
+});

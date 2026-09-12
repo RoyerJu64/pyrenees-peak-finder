@@ -10,5 +10,6 @@ export * from './labels';
 export * from './projection';
 export * from './ranking';
 export * from './sighting';
+export * from './skyline';
 export * from './vector';
 export * from './visibility';

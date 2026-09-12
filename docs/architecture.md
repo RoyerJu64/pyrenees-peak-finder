@@ -92,6 +92,25 @@ pas. Un sommet laisse en `visible` n'est donc pas garanti visible, seulement non
 contredit. Sur le dataset reel, depuis Laruns, ce test ecarte deja 66 % des 1158
 sommets d'un rayon de 40 km.
 
+**Regroupement des silhouettes** (`selectSkylinePeaks`). Depuis la plaine, une
+crete pyreneenne aligne des dizaines de sommets references dans un ou deux
+degres de gisement : ils forment une seule silhouette, et les nommer tous
+revient a etiqueter dix fois la meme montagne. Le tri se fait par suppression
+des non-maxima sur la voute celeste — chaque sommet retenu, par ordre de
+pertinence, absorbe ceux qui tombent a moins de 1.5 degre de lui, gisement et
+elevation confondus.
+
+Un simple seuil de depassement local ne conviendrait pas, et l'erreur merite
+d'etre notee : deux sommets jumeaux a quelques metres d'altitude l'un de
+l'autre se « dominent » mutuellement de quelques centiemes de degre et
+s'eliminent tous les deux, faisant disparaitre le massif entier. C'est le cas
+du Pic du Midi d'Ossau, flanque de la Pointe de France six metres plus bas. La
+suppression des non-maxima garantit au contraire qu'un groupe conserve toujours
+exactement un representant, et que c'est le meilleur.
+
+Depuis Pau, cela ramene 1263 sommets a 90 silhouettes distinctes, dont 31
+tombent dans le cadre.
+
 **Pertinence** (`compareByRelevance`). Trois criteres, dans cet ordre : ce qu'on
 voit avant ce qui est cache, ce qui a une description avant ce qui n'en a pas,
 puis la taille apparente. Les departages suivants — proeminence, distance,
@@ -118,6 +137,15 @@ sortiraient du cadre par le haut sont abandonnees plutot qu'empilees hors-champ.
 
 L'ordre de service est injectable. Par defaut le sommet le plus proche garde sa
 place naturelle.
+
+La remontee est bornee (`maxRise`), et cette borne n'est pas cosmetique. Depuis
+Pau, la chaine entiere tient dans une bande de **31 pixels** sur un ecran de
+844 : sans borne, l'anti-collision empilait les etiquettes jusqu'a **334 pixels**
+au-dessus de leur sommet, c'est-a-dire entierement dans le ciel, au-dessus de la
+ligne de crete qu'elles pretendaient designer. Le filet de rappel ne sauve rien
+a cette distance. Une etiquette qui ne trouve pas sa place dans les 140 pixels
+au-dessus de son sommet est abandonnee ; le classement par pertinence a deja
+decide laquelle merite la place.
 
 ## Champ de vision
 
