@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.expo/
+.expo-shared/
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Donnees intermediaires : les exports Overpass bruts et le cache MNT ne sont pas versionnes
+# (regenerables via data/scripts/). Seul data/processed/peaks.sqlite l'est.
+data/raw/*
+!data/raw/.gitkeep
+data/dem/
+
+.DS_Store

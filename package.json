@@ -1,0 +1,17 @@
+{
+  "name": "pyrenees-peak-finder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Identification geometrique des sommets pyreneens vises par la camera du telephone",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

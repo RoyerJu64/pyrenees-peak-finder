@@ -1,0 +1,2 @@
+# Pipeline de donnees. La bibliotheque standard couvre le reste (sqlite3, json).
+requests>=2.31,<3
