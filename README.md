@@ -16,6 +16,7 @@ calcule ou tomber les etiquettes. Voir [docs/architecture.md](docs/architecture.
 | Phase 0 — scaffold monorepo | fait |
 | Phase 1 — dataset Ossau + Aspe | fait, 1263 sommets, 240 Kio |
 | Phase 2 — MVP camera | geometrie faite et testee, app a ecrire |
+| Phase 3 — occlusion MNT | partiel : occlusion entre sommets faite, MNT a venir |
 | Phases 3 a 6 | a venir |
 
 Detail dans [docs/roadmap.md](docs/roadmap.md).
@@ -25,7 +26,7 @@ Detail dans [docs/roadmap.md](docs/roadmap.md).
 ```bash
 corepack enable            # pnpm 9
 pnpm install
-pnpm test                  # 71 tests unitaires de geometrie
+pnpm test                  # 112 tests unitaires de geometrie
 pnpm typecheck
 ```
 
@@ -46,7 +47,8 @@ regenerer ou a elargir l'emprise.
 
 ```
 packages/shared-types     types et unites, partages par tout le monorepo
-packages/peak-geometry    distance, gisement, elevation, projection, etiquettes
+packages/peak-geometry    distance, gisement, elevation, visibilite, FOV,
+                          pertinence, projection, etiquettes
 apps/mobile               application Expo (a venir)
 data/scripts              pipeline Python
 docs                      architecture, sources de donnees, roadmap

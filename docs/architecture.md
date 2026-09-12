@@ -78,7 +78,37 @@ transverse plutot que par `acos` sur la composante axiale : `acos` perd sa
 precision pres de zero, cas le plus frequent puisque c'est precisement la que
 l'utilisateur vise.
 
-### 4. Etiquettes
+### 4. Visibilite et pertinence
+
+Deux filtres se succedent avant la mise en page.
+
+**Occlusion entre sommets** (`markPeakOcclusion`). Un sommet est un maximum
+local du relief : si un sommet plus proche, sur sensiblement le meme gisement,
+se presente sous un angle d'elevation superieur, le terrain coupe la ligne de
+visee et ce qui est derriere est bien cache. Le raisonnement est sur quand il se
+declenche, et tres incomplet : la base ne contient que des sommets, or en fond
+de vallee c'est le versant d'en face qui masque l'horizon, et le versant n'y est
+pas. Un sommet laisse en `visible` n'est donc pas garanti visible, seulement non
+contredit. Sur le dataset reel, depuis Laruns, ce test ecarte deja 66 % des 1158
+sommets d'un rayon de 40 km.
+
+**Pertinence** (`compareByRelevance`). Trois criteres, dans cet ordre : ce qu'on
+voit avant ce qui est cache, ce qui a une description avant ce qui n'en a pas,
+puis la taille apparente. Les departages suivants — proeminence, distance,
+identifiant — n'ont pas de valeur editoriale : ils garantissent un ordre total
+et stable, pour que l'overlay ne se reorganise pas d'une image a l'autre.
+
+La taille apparente est l'angle d'elevation, seul critere d'encombrement visuel
+disponible pour tous les sommets. La proeminence discriminerait mieux, mais OSM
+ne la porte que sur 43 des 1263 sommets de l'emprise : en faire le critere
+principal effacerait les 97 % restants. Elle sert de departage.
+
+Le tri passe avant la mise en page, et non l'inverse. Sans lui, l'anti-collision
+arbitre sur un critere de place : depuis Laruns, le Pic du Midi d'Ossau se
+faisait evincer par un mamelon anonyme mieux positionne. Apres tri, il arrive
+premier.
+
+### 5. Etiquettes
 
 `layoutLabels` empile verticalement les etiquettes qui se chevaucheraient. Un
 panorama pyreneen aligne facilement dix sommets dans quelques degres de cap ;
@@ -89,11 +119,39 @@ sortiraient du cadre par le haut sont abandonnees plutot qu'empilees hors-champ.
 L'ordre de service est injectable. Par defaut le sommet le plus proche garde sa
 place naturelle.
 
+## Champ de vision
+
+`expo-camera` n'expose pas le FOV, et une valeur fausse etale ou comprime tout
+le panorama sans qu'aucun test ne puisse le detecter. La voie retenue ne
+maintient aucune table d'appareils : l'EXIF d'une photo prise par la camera
+porte `FocalLengthIn35mmFilm` sur la quasi-totalite des telephones, et
+`cameraFieldOfView` en deduit le champ reellement rendu.
+
+Deux corrections y sont integrees, chacune reparant une erreur qui ne se voit
+pas :
+
+- **Le rognage.** L'apercu remplit l'ecran : un capteur 4:3 affiche en 9:19.5
+  perd la moitie de sa largeur. Projeter avec le champ du capteur etalerait
+  tout le panorama.
+- **L'orientation.** Un capteur 4:3 tenu en portrait vaut 3:4. Intervertir les
+  deux comprime le panorama d'un tiers. `cameraFieldOfView` deduit
+  l'orientation du viewport, pour qu'il n'y ait rien a intervertir.
+
+Pour un iPhone en portrait plein ecran, 26 mm equivalent sur capteur 4:3 :
+34.2 x 67.3 degres. `FALLBACK_FIELD_OF_VIEW` sert tant que l'EXIF n'a pas
+repondu — c'est un repli, pas un defaut acceptable.
+
+Une calibration sur deux sommets identifies par l'utilisateur resoudrait a la
+fois le FOV et le decalage de cap. Elle n'est pas ecrite : l'EXIF suffit pour le
+FOV, et le decalage de cap releve de la phase 5.
+
 ## Ce qui n'est pas encore la
 
-**Occlusion (phase 3).** Rien ne rejette aujourd'hui un sommet cache derriere
-une crete plus proche. Le champ `visibility` existe dans les types et vaut
-`unknown` partout. Le test demande un MNT et un ray-marching le long du gisement.
+**Occlusion par le relief (phase 3).** Seule l'occlusion entre sommets est
+traitee. Ce qui manque est le cas dominant : la crete ou le versant qui masque,
+sans sommet reference dessus. Le ray-marching sur MNT remplira le meme champ
+`visibility`, sans changer les appelants — `markPeakOcclusion` restera utile en
+complement, ou disparaitra si le MNT le subsume.
 
 **Derive du magnetometre (phase 5).** La boussole d'un telephone derive de
 plusieurs degres, davantage pres d'une voiture ou d'un sac a armature. A 15 km,

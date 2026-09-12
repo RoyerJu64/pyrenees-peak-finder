@@ -17,10 +17,13 @@ script.
 
 ## Phase 2 — MVP camera + GPS + boussole + overlay — en cours
 
-Fait : la geometrie complete, testee (71 tests unitaires).
+Fait : la geometrie complete, testee (112 tests unitaires).
 
 - `boundingBoxAround` — prefiltre spatial de la requete SQL
 - `computeSighting` — distance, gisement, elevation corrigee
+- `markPeakOcclusion` — occlusion entre sommets, sans MNT
+- `compareByRelevance` — visibilite, puis description, puis taille apparente
+- `cameraFieldOfView` — FOV rendu, deduit de l'EXIF, rognage et orientation compris
 - `projectSighting` — projection stenope, roulis compris
 - `layoutLabels` — anti-collision des etiquettes
 
@@ -38,18 +41,26 @@ Reste a faire, cote `apps/mobile` :
 - [ ] overlay de rendu, etiquettes minimalistes
 - [ ] fiche sommet : nom, altitude, distance, description
 
-Deux points ouverts, a trancher avant d'ecrire l'ecran camera :
+Les deux points ouverts ont ete tranches.
 
-**Le FOV.** `expo-camera` ne l'expose pas. Une valeur fausse etale ou comprime
-tout le panorama, sans qu'aucun test ne puisse le detecter.
+**Le FOV** se lit dans l'EXIF (`FocalLengthIn35mmFilm`), pas dans une table
+d'appareils. Voir [architecture.md](architecture.md#champ-de-vision).
 
-**Le tri des sommets.** Verification sur le dataset reel, depuis Laruns, cap 184,
-champ de 66 degres : 1158 sommets dans un rayon de 40 km, **371 tombent dans le
-champ**, et l'anti-collision n'en loge que 35. Elle abandonne donc 336
-etiquettes sur un critere de place, pas de pertinence — le Pic du Midi d'Ossau
-peut se faire evincer par un turon anonyme mieux place. Il faut un critere de
-selection en amont (proeminence, taille apparente, presence d'une description),
-l'anti-collision n'etant que le dernier recours.
+**Le tri** se fait sur visibilite, puis description, puis taille apparente.
+Mesure sur le dataset reel, depuis Laruns, cap 184, champ rendu 34.2 x 67.3 :
+
+| | avant | apres |
+|---|---|---|
+| sommets dans 40 km | 1158 | 1158 |
+| ecartes comme caches | 0 | 770 |
+| dans le champ | 371 | 54 |
+| etiquettes placees | 35 | 25 |
+| rang du Pic du Midi d'Ossau | evince | 1er |
+
+Reste un encombrement propre au massif de l'Ossau : Pointe de France, Petit Pic
+du Midi, Pointe d'Aragon, Doigt de Pompie sont des satellites du meme sommet et
+occupent quatre etiquettes cote a cote. Un regroupement par massif, ou
+l'occlusion MNT, reglera la question.
 
 ## Phase 3 — Occlusion via MNT
 
